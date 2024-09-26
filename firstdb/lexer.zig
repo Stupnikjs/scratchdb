@@ -57,18 +57,13 @@ pub const Lexer = struct {
                 .value = null,
             };
         }
-        const value = fn(source: String) String{
-
-
-        }; (source[self.position..source.len - 1]); 
-
-        return {
-            .kind: tokenType.indentifier, 
-            .value = value,
-
-        };
+        const value = getIndentifierValue(self); 
+        return .{
+            .kind = tokenType.indentifier;  
+            .value = value; 
+        }
        
-    }
+    };
      pub fn getIndentifierValue(self: *Lexer) !String {
          var list = std.ArrayList(u8).init(std.heap.page_allocator);
          const start = self.position; 
