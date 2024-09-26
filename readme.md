@@ -1,6 +1,12 @@
-Let's try to implement a db without any knowledge of how a db works 
-the point is to face so issues and think how to resolve those 
+i want to learn how db works 
 
 
-## in firstdb im implementing a simple key value store in a text file 
+Let's try to implement a db without any knowledge of how a db works
+ 
+first im gonna try to implement on my own 
+a Key value db 
+
+then a SQL
+
+
 
