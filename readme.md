@@ -10,3 +10,9 @@ then a SQL
 
 
 
+// Key val 
+
+metadata file 
+bin files 
+
+
