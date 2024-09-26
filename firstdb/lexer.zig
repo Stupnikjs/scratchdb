@@ -3,6 +3,7 @@ const String = @import("types.zig").String;
 const streql = std.mem.eql;
 const tokenType = @import("types.zig").tokenType;
 const Token = @import("types.zig").Token;
+const Parser = @import("parser.zig").Parser;
 //
 
 pub fn firstdb() !void {
@@ -18,7 +19,14 @@ pub fn firstdb() !void {
 }
 
 pub fn ParseCommand(str: String) !void {
-    std.debug.print("{s} {s}", .{ "test", str });
+    var lex = Lexer.init(str);
+    var parser = Parser{
+        .lexer = &lex,
+    };
+    const tokens = try parser.parse();
+    for (tokens) |t| {
+        std.debug.print("{any}", .{t});
+    }
 }
 
 pub const Lexer = struct {
@@ -33,61 +41,26 @@ pub const Lexer = struct {
             .ch = source[0],
         };
     }
-    pub fn nexToken(old_self: *Lexer) Token {
-        const self = eatWhiteSpace(old_self);
-        // check command
-        if (streql(u8, self.source[self.position .. self.position + 3], "get")) {
-            self.position += 3;
-            return .{
-                .kind = tokenType.get,
-                .value = null,
-            };
-        }
-        if (streql(u8, self.source[self.position .. self.position + 3], "del")) {
-            self.position += 3;
-            return .{
-                .kind = tokenType.del,
-                .value = null,
-            };
-        }
-        if (streql(u8, self.source[self.position .. self.position + 3], "set")) {
-            self.position += 3;
-            return .{
-                .kind = tokenType.set,
-                .value = null,
-            };
-        }
-        const value = getIndentifierValue(self); 
-        return .{
-            .kind = tokenType.indentifier;  
-            .value = value; 
-        }
-       
-    };
-     pub fn getIndentifierValue(self: *Lexer) !String {
-         var list = std.ArrayList(u8).init(std.heap.page_allocator);
-         const start = self.position; 
-         defer list.deinit(); 
-         var i: usize = 0;  
-         while (true){
-            if (source[self.position] == " " or source[self.position] == "\n") {
-                return indent;
-            }
-            else {
-                try list.append(source[i]); 
-                i += 1;
-                self.position += 1; 
-            } 
 
-
-         }
+    pub fn nextToken(self: *Lexer) Token {
+        // return current token and move cursor forward
+        if (streql(u8, self.source[self.position .. self.position + 2], "set")) {
+            self.position += 3;
+            self.movecursor();
+            self.movecursor();
+            self.movecursor();
+            return .{ .kind = tokenType.set, .value = null };
+        } else {
+            return .{ .kind = tokenType.del, .value = null };
         }
-
-    fn eatWhiteSpace(self: *Lexer) *Lexer {
+    }
+    fn eatWhiteSpace(self: *Lexer) void {
         if (self.ch == ' ' or self.ch == '\n' or self.ch == '\r') {
             self.position += 1;
-            return self;
+            if (self.source.len > self.position) self.movecursor();
         }
-        return self;
+    }
+    fn movecursor(self: *Lexer) void {
+        self.ch = self.source[self.position];
     }
 };
