@@ -16,3 +16,8 @@ metadata file
 bin files 
 
 
+// first design of the storage engine
+in header key plus start end bytes index 
+
+
+
