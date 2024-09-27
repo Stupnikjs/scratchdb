@@ -32,35 +32,61 @@ pub fn ParseCommand(str: String) !void {
 pub const Lexer = struct {
     source: String,
     position: u64,
-    ch: u8,
 
     pub fn init(source: String) Lexer {
         return .{
             .source = source,
             .position = 0,
-            .ch = source[0],
         };
     }
+    pub fn readCommand(self: *Lexer) ?Token {
+        if (self.source.len - self.position >= 3) {
+            const str = self.source[self.position .. self.position + 3];
+            if (streql(u8, str, "set")) {
+                self.position += 3;
+                return .{
+                    .kind = tokenType.set,
+                    .value = null,
+                };
+            }
+            if (streql(u8, str, "del")) {
+                self.position += 3;
+                return .{
+                    .kind = tokenType.del,
+                    .value = null,
+                };
+            }
+            if (streql(u8, str, "get")) {
+                self.position += 3;
+                return .{
+                    .kind = tokenType.get,
+                    .value = null,
+                };
+            }
+            return null;
+        }
+        return null;
+    }
 
-    pub fn nextToken(self: *Lexer) Token {
-        // return current token and move cursor forward
-        if (streql(u8, self.source[self.position .. self.position + 2], "set")) {
-            self.position += 3;
-            self.movecursor();
-            self.movecursor();
-            self.movecursor();
-            return .{ .kind = tokenType.set, .value = null };
-        } else {
-            return .{ .kind = tokenType.del, .value = null };
-        }
-    }
-    fn eatWhiteSpace(self: *Lexer) void {
-        if (self.ch == ' ' or self.ch == '\n' or self.ch == '\r') {
+    pub fn nextToken(self: *Lexer) !?Token {
+        std.debug.print("char: {c} \n", .{self.source[self.position]});
+        var token = readCommand(self);
+        if (token == null) {
             self.position += 1;
-            if (self.source.len > self.position) self.movecursor();
+            std.debug.print(" pos: {d} \n", .{self.source[self.position]});
+            var list = std.ArrayList(u8).init(std.heap.page_allocator);
+            defer list.deinit();
+            while (self.source[self.position] != ' ') {
+                try list.append(self.source[self.position]);
+                self.position += 1;
+            }
+            token = Token{
+                .kind = tokenType.indentifier,
+                .value = try list.toOwnedSlice(),
+            };
+            return token;
         }
-    }
-    fn movecursor(self: *Lexer) void {
-        self.ch = self.source[self.position];
+
+        return token.?;
     }
 };
