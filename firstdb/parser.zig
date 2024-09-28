@@ -3,7 +3,7 @@ const String = @import("types.zig").String;
 const streql = std.mem.eql;
 const commandType = @import("types.zig").commandType;
 const commandError = @import("types.zig").commandError;
-const storage = @import("storage.zig");
+const StorageEngine = @import("storage.zig").StorageEngine;
 
 //
 
