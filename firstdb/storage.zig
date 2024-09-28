@@ -42,4 +42,11 @@ pub const StorageEngine = struct {
             return err;
         };
     }
+
+    pub fn openStoreDir(self: *StorageEngine) !fs.Dir {
+        const dir = try fs.cwd().openDir(self.storeDirName, .{});
+        return dir;
+    }
+
+    // pub fn set(self: *StorageEngine, key: []const u8, value: []const u8) !void {}
 };
