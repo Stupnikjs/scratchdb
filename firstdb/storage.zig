@@ -48,5 +48,14 @@ pub const StorageEngine = struct {
         return dir;
     }
 
-    // pub fn set(self: *StorageEngine, key: []const u8, value: []const u8) !void {}
+    pub fn set(self: *StorageEngine, key: []const u8, value: []const u8) !void {
+        var dir = try self.openStoreDir();
+        var file = try dir.openFile(self.headerFileName, .{ .mode = .read_write });
+        // CHECK IF KEY ISNT ALREADY SET
+        _ = try file.write(key);
+        const size_usize = std.mem.writeInt(usize, key.len, .{});
+        _ = try file.write(size_usize);
+        _ = value;
+        file.close();
+    }
 };
