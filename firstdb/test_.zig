@@ -7,7 +7,8 @@ test "create storage engine" {
     try engine.setup();
 
     var dir = try engine.openStoreDir();
-    var file = try dir.openFile(engine.headerFileName, .{ write = true }); 
+
+    var file = try dir.openFile(engine.headerFileName, .{ .lock = false });
     _ = try file.write("moche");
     defer file.close();
     dir.close();
