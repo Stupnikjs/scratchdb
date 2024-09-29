@@ -9,4 +9,5 @@ pub const commandType = enum {
 pub const commandError = error{
     unknownCommand,
     noSpaceBetweenCommandIdent,
+    keyTooLong,
 };
