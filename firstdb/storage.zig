@@ -1,6 +1,7 @@
 const std = @import("std");
 const fs = std.fs;
 const String = @import("types.zig").String;
+const u64toBytes = @import("util.zig").u64tobytes;
 
 pub const StorageEngine = struct {
     headerFileName: String,
@@ -53,9 +54,8 @@ pub const StorageEngine = struct {
         var file = try dir.openFile(self.headerFileName, .{ .mode = .read_write });
         // CHECK IF KEY ISNT ALREADY SET
         _ = try file.write(key);
-        var buffer: [4]u8 = undefined;
-        const size_usize = std.mem.writeInt(u8, &buffer, key.len, .{});
-        _ = try file.write(size_usize);
+
+        _ = try file.write(&u64toBytes(key.len));
         _ = value;
         file.close();
     }
