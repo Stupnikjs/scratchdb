@@ -49,13 +49,25 @@ pub const StorageEngine = struct {
         return dir;
     }
 
-    pub fn set(self: *StorageEngine, key: [8]u8, value: []const u8) !void {
+    pub fn set(self: *StorageEngine, key: []const u8, value: []const u8) !void {
         var dir = try self.openStoreDir();
         var file = try dir.openFile(self.headerFileName, .{ .mode = .read_write });
         // CHECK IF KEY ISNT ALREADY SET
-        _ = try file.write(key);
+        const stat = try file.stat();
+        try file.seekTo(stat.size);
+        _ = try file.writer().write(key);
         _ = try file.write(&u64toBytes(key.len));
         _ = value;
         file.close();
+    }
+
+    pub fn printHeader(self: *StorageEngine) !void {
+        var dir = try self.openStoreDir();
+        var file = try dir.openFile(self.headerFileName, .{ .mode = .read_write });
+        var buffer: [1024]u8 = undefined;
+        const size = try file.readAll(&buffer);
+        for (buffer[0..size]) |b| {
+            std.debug.print("{c}", .{b});
+        }
     }
 };

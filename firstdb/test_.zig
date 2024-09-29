@@ -7,4 +7,6 @@ test "create storage engine" {
     try engine.setup();
 
     try engine.set("michel", "superstronk");
+    try engine.set("jean", "superstronk");
+    try engine.printHeader();
 }
