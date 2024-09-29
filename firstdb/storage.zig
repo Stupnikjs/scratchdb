@@ -53,7 +53,8 @@ pub const StorageEngine = struct {
         var file = try dir.openFile(self.headerFileName, .{ .mode = .read_write });
         // CHECK IF KEY ISNT ALREADY SET
         _ = try file.write(key);
-        const size_usize = std.mem.writeInt(usize, key.len, .{});
+        var buffer: [4]u8 = undefined;
+        const size_usize = std.mem.writeInt(u8, &buffer, key.len, .{});
         _ = try file.write(size_usize);
         _ = value;
         file.close();
