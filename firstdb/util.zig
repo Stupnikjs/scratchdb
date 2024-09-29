@@ -1,6 +1,6 @@
 const std = @import("std");
 const builtin = @import("builtin");
-const commandError = @import("types").commandError;
+const commandError = @import("types.zig").commandError;
 
 pub fn u64tobytes(src: u64) [8]u8 {
     var buffer: [8]u8 = undefined;
@@ -13,6 +13,10 @@ pub fn addPaddingKey(key: []const u8) ![]u8 {
     var list = try std.ArrayList(u8).initCapacity(std.heap.page_allocator, 8);
     defer list.deinit();
     for (0..8) |i| {
+        if (i >= key.len) {
+            try list.append('0');
+            continue;
+        }
         try list.append(key[i]);
     }
     return list.toOwnedSlice();

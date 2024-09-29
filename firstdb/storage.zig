@@ -2,6 +2,7 @@ const std = @import("std");
 const fs = std.fs;
 const String = @import("types.zig").String;
 const u64toBytes = @import("util.zig").u64tobytes;
+const paddKey = @import("util.zig").addPaddingKey;
 
 pub const StorageEngine = struct {
     headerFileName: String,
@@ -52,12 +53,13 @@ pub const StorageEngine = struct {
     pub fn set(self: *StorageEngine, key: []const u8, value: []const u8) !void {
         var dir = try self.openStoreDir();
         var file = try dir.openFile(self.headerFileName, .{ .mode = .read_write });
-        // CHECK IF KEY ISNT ALREADY SET
+        const paddedKey = try paddKey(key);
         const stat = try file.stat();
         try file.seekTo(stat.size);
-        _ = try file.writer().write(key);
-        _ = try file.write(&u64toBytes(key.len));
-        _ = value;
+        const start = stat.size + 8;
+        _ = try file.writer().write(paddedKey);
+        _ = try file.write(&u64toBytes(start));
+        _ = try file.write(&u64toBytes(value.len));
         file.close();
     }
 
@@ -69,5 +71,23 @@ pub const StorageEngine = struct {
         for (buffer[0..size]) |b| {
             std.debug.print("{c}", .{b});
         }
+    }
+
+    pub fn parseHeaderFile(self: *StorageEngine) !void {
+        var dir = try self.openStoreDir();
+        var file = try dir.openFile(self.headerFileName, .{ .mode = .read_only });
+        var buffer: [8]u8 = undefined;
+        var index: u8 = 0;
+        while (true) {
+            const size = try file.read(&buffer);
+            if (size == 0) break;
+            if (index % 3 == 0) std.debug.print("key: {s} \n", .{buffer});
+            buffer = undefined;
+            index += 1;
+        }
+
+        // remove key padding
+        // get the start end num
+        // store in hash map
     }
 };
