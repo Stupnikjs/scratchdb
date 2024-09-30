@@ -118,4 +118,5 @@ pub const StorageEngine = struct {
         }
     }
      // put start + size of value to hash
+     // delete will juste remove the key from header ? 
 };
