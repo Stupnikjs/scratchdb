@@ -15,3 +15,13 @@ test "create storage engine / too long key" {
     const err = engine.set("michelmaneuvre", "superstronk");
     try expect(err == commandError.keyTooLong);
 }
+
+test "get all keys" {
+    var engine = StorageEngine.init();
+    try engine.setup();
+    try engine.set("superkey", "michel");
+    const keys = engine.map.keys();
+    for (keys) |key| {
+        std.debug.print("key: {s}", .{key});
+    }
+}
