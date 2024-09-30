@@ -24,7 +24,16 @@ what the setter func needs to do
 
 padd the key
 getthedb file size + 1 => start of the value stored 
-write to header => the key(8bytes) 
+write to header => the key(8bytes) (start) (len) or (end)
+then write value to dbfile
+
+
+what the getter needs to do:
+
+iterate over header files 
+=> find the proper Key 
+=> get start end 
+open dbfile to start end toget the value
 
 
 
