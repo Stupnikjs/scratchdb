@@ -20,4 +20,11 @@ bin files
 in header key plus start end bytes index 
 
 
+what the setter func needs to do 
+
+padd the key
+getthedb file size + 1 => start of the value stored 
+write to header => the key(8bytes) 
+
+
 
