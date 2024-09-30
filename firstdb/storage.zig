@@ -117,4 +117,5 @@ pub const StorageEngine = struct {
             index += 1;
         }
     }
+     // put start + size of value to hash
 };
