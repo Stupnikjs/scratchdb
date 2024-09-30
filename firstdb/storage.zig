@@ -94,7 +94,7 @@ pub const StorageEngine = struct {
     pub fn parseHeaderFile(self: *StorageEngine) !void {
         var dir = try self.openStoreDir();
         var file = try dir.openFile(self.headerFileName, .{ .mode = .read_only });
-        var buffer: [8]u8 = undefined;
+        var buffer: [24]u8 = undefined;
         var index: u8 = 0;
         var key: []const u8 = undefined;
         var coord: [2]u64 = [2]u64{ 0, 0 };
@@ -103,13 +103,13 @@ pub const StorageEngine = struct {
             const size = try file.read(&buffer);
             if (size == 0) break;
             if (index % 3 == 0) {
-                key = try removePadding(&buffer);
+                key = try removePadding(&buffer[0..7]);
                 std.debug.print("key: {s} \n", .{key});
                 if (!util.stringInArr(key, self.map.keys())) try self.map.put(key, coord) else {
                     std.debug.print(" key already registered", .{});
                 }
             }
-            if (index % 3 == 1) {
+           
                 std.debug.print(" u64 {d} \n", .{util.bytesToU64LE(buffer)});
             }
             coord[0] = util.bytesToU64LE(buffer);
