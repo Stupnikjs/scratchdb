@@ -12,9 +12,6 @@ pub const StorageEngine = struct {
     dbFileName: String,
     storeDirName: String,
     pub fn init() StorageEngine {
-        // test if header exist
-        // if doesnt create dir and files
-
         return .{
             .map = undefined,
             .headerFileName = "header",
@@ -57,15 +54,31 @@ pub const StorageEngine = struct {
 
     pub fn set(self: *StorageEngine, key: []const u8, value: []const u8) !void {
         var dir = try self.openStoreDir();
-        var file = try dir.openFile(self.headerFileName, .{ .mode = .read_write });
+        var headerFile = try dir.openFile(self.headerFileName, .{ .mode = .read_write });
+        var dbFile = try dir.openFile(self.dbFileName, .{ .mode = .read_write });
+
+        // fill the key to its 8 bytes
         const paddedKey = try paddKey(key);
-        const stat = try file.stat();
-        try file.seekTo(stat.size);
-        const start = stat.size + 8;
-        _ = try file.writer().write(paddedKey);
-        _ = try file.write(&u64toBytes(start));
-        _ = try file.write(&u64toBytes(value.len));
-        file.close();
+        const header_stat = try headerFile.stat();
+        const db_stat = try dbFile.stat();
+
+        // point to the end of the file
+        try headerFile.seekTo(header_stat.size);
+        const start = db_stat.size; // start of the file in dbfile
+
+        _ = try headerFile.writer().write(paddedKey);
+        _ = try headerFile.write(&u64toBytes(start));
+        _ = try headerFile.write(&u64toBytes(value.len + start));
+        _ = try dbFile.write(value);
+        const arr = [2]u64{ start, start + value.len };
+        try self.map.put(key, arr);
+        headerFile.close();
+        dbFile.close();
+    }
+
+    pub fn get(self: *StorageEngine, key: []const u8) []u8 {
+        _ = self;
+        _ = key;
     }
 
     pub fn printHeader(self: *StorageEngine) !void {
@@ -103,9 +116,5 @@ pub const StorageEngine = struct {
             buffer = undefined;
             index += 1;
         }
-
-        // remove key padding
-        // get the start end num
-        // store in hash map
     }
 };

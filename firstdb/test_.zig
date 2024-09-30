@@ -22,6 +22,7 @@ test "get all keys" {
     try engine.set("superkey", "michel");
     const keys = engine.map.keys();
     for (keys) |key| {
-        std.debug.print("key: {s}", .{key});
+        std.debug.print("key: {any}", .{engine.map.get(key)});
     }
+    try engine.printHeader();
 }
