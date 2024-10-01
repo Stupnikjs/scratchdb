@@ -36,4 +36,5 @@ iterate over header files
 open dbfile to start end toget the value
 
 
-
+what the delete needs to do:
+remove the 24bytes of the Key in header plus the value in the dB file 
