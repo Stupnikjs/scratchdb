@@ -71,6 +71,19 @@ pub const Parser = struct {
         }
         return list.toOwnedSlice();
     }
+
+    pub fn parseValue(self: *Parser) ![]u8 {
+        if (self.ch == ' ') return commandError.noSpaceBetweenCommandIdent;
+        self.moveCursor();
+        if (self.ch != '\'') return commandError.WrongCommand;
+        self.moveCursor();
+        var list = std.ArrayList(u8).init(std.heap.page_allocator);
+        defer list.deinit();
+        while (true) {
+            if (self.ch != '\'') try list.append(self.ch) else break;
+        }
+        return list.toOwnedSlice();
+    }
     pub fn parse(self: *Parser, engine: *StorageEngine) !void {
         self.eatWhiteSpace();
         const cmd = try self.parseCommand();
@@ -78,9 +91,7 @@ pub const Parser = struct {
         std.debug.print("command: {any} indentifier: {s} \n", .{ cmd, indent });
         // pass the value
         switch (cmd) {
-            commandType.set => engine.set(
-                indent,
-            ),
+            commandType.set => engine.set(indent, "value"),
             else => return,
         }
     }
