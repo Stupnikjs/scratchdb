@@ -37,4 +37,10 @@ open dbfile to start end toget the value
 
 
 what the delete needs to do:
-remove the 24bytes of the Key in header plus the value in the dB file 
+
+remove the 24bytes of the Key in header plus the value in the dB file this is tricky, how should WE do, because its Somewhere in the middle of our files.
+
+we need to remove the key from header files 
+since header file souldnt be that big, this might not be a Big deal to rewrite the whole file without the Key. 
+
+
