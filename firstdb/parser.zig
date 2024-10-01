@@ -5,11 +5,10 @@ const commandType = @import("types.zig").commandType;
 const commandError = @import("types.zig").commandError;
 const StorageEngine = @import("storage.zig").StorageEngine;
 
-//
-
 pub fn firstdb() !void {
     const stdin = std.io.getStdIn().reader();
-
+    const engine = StorageEngine.init("header", "db", "store");
+    try engine.setup();
     while (true) {
         std.debug.print(":>", .{});
         var buffer: [1024]u8 = undefined;
@@ -72,11 +71,18 @@ pub const Parser = struct {
         }
         return list.toOwnedSlice();
     }
-    pub fn parse(self: *Parser) !void {
+    pub fn parse(self: *Parser, engine: *StorageEngine) !void {
         self.eatWhiteSpace();
         const cmd = try self.parseCommand();
         const indent = try self.parseIndentifier();
         std.debug.print("command: {any} indentifier: {s} \n", .{ cmd, indent });
+        // pass the value
+        switch (cmd) {
+            commandType.set => engine.set(
+                indent,
+            ),
+            else => return,
+        }
     }
     pub fn eatWhiteSpace(self: *Parser) void {
         if (self.ch == ' ') {

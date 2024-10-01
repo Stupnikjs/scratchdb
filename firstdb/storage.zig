@@ -2,20 +2,18 @@ const std = @import("std");
 const fs = std.fs;
 const String = @import("types.zig").String;
 const commandError = @import("types.zig").commandError;
-const u64toBytes = @import("util.zig").u64tobytes;
-const paddKey = @import("util.zig").addPaddingKey;
-const removePadding = @import("util.zig").removePadding;
 const util = @import("util.zig");
+const u64toBytes = util.u64tobytes;
+const paddKey = util.addPaddingKey;
+const removePadding = util.removePadding;
 
 pub const StorageEngine = struct {
-    maxDbFileLength: u64,
     map: std.StringArrayHashMap([2]u64),
     headerFileName: String,
     dbFileName: String,
     storeDirName: String,
     pub fn init(headerName: []const u8, dbName: []const u8, dirName: []const u8) StorageEngine {
         return .{
-            .maxDbFileLength = 1024,
             .map = undefined,
             .headerFileName = headerName,
             .dbFileName = dbName,
@@ -83,14 +81,14 @@ pub const StorageEngine = struct {
         dbFile.close();
     }
 
-    pub fn get(self: *StorageEngine, key: []const u8) !void {
+    pub fn get(self: *StorageEngine, key: []const u8) ![]u8 {
         try self.parseHeaderFile();
         const coord = self.map.get(key).?;
         var dir = try self.openStoreDir();
         var file = try dir.openFile(self.dbFileName, .{ .mode = .read_only });
         var buffer: [1024]u8 = undefined;
         _ = try file.reader().readAll(&buffer);
-        std.debug.print("buff {s} \n", .{buffer[coord[0] .. coord[0] + coord[1]]});
+        return buffer[coord[0] .. coord[0] + coord[1]];
     }
 
     pub fn printKeys(self: *StorageEngine) !void {
@@ -103,6 +101,7 @@ pub const StorageEngine = struct {
     pub fn parseHeaderFile(self: *StorageEngine) !void {
         var dir = try self.openStoreDir();
         var file = try dir.openFile(self.headerFileName, .{ .mode = .read_only });
+
         var buffer: [24]u8 = undefined;
         var start: [8]u8 = undefined;
         var len: [8]u8 = undefined;
@@ -127,5 +126,6 @@ pub const StorageEngine = struct {
         }
     }
 };
+
 // put start + size of value to hash
 // delete will juste remove the key from header ?
