@@ -79,16 +79,18 @@ pub const StorageEngine = struct {
         try self.map.put(key, arr);
         headerFile.close();
         dbFile.close();
+        dir.close();
     }
 
     pub fn get(self: *StorageEngine, key: []const u8) ![]u8 {
         try self.parseHeaderFile();
-        const coord = self.map.get(key).?;
+        const coord = self.map.get(key);
+        if (coord == null) return commandError.keyNotFound;
         var dir = try self.openStoreDir();
         var file = try dir.openFile(self.dbFileName, .{ .mode = .read_only });
         var buffer: [1024]u8 = undefined;
-        _ = try file.reader().readAll(&buffer);
-        return buffer[coord[0] .. coord[0] + coord[1]];
+        _ = try file.reader().readAll(&buffer); // not efficient at all
+        return buffer[coord.?[0] .. coord.?[0] + coord.?[1]];
     }
 
     pub fn printKeys(self: *StorageEngine) !void {

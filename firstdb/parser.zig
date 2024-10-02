@@ -7,15 +7,16 @@ const StorageEngine = @import("storage.zig").StorageEngine;
 
 pub fn firstdb() !void {
     const stdin = std.io.getStdIn().reader();
-    const engine = StorageEngine.init("header", "db", "store");
+    var engine = StorageEngine.init("header", "db", "store");
     try engine.setup();
+    var parser = Parser.init();
     while (true) {
         std.debug.print(":>", .{});
         var buffer: [1024]u8 = undefined;
         const user_input = try stdin.readUntilDelimiter(&buffer, '\n');
         const str = user_input[0 .. user_input.len - 1];
-        var parser = Parser.init(str);
-        try parser.parse();
+        try parser.prompt(str);
+        try parser.parse(&engine);
     }
 }
 
@@ -32,6 +33,9 @@ pub const Parser = struct {
         };
     }
 
+    pub fn prompt(self: *Parser) void {
+        _ = self;
+    }
     pub fn parseCommand(self: *Parser) commandError!commandType {
         if (streql(u8, self.source[self.position .. self.position + 3], "del")) {
             self.moveCursor();
@@ -73,14 +77,18 @@ pub const Parser = struct {
     }
 
     pub fn parseValue(self: *Parser) ![]u8 {
-        if (self.ch == ' ') return commandError.noSpaceBetweenCommandIdent;
+        if (self.ch != ' ') return commandError.noSpaceBetweenCommandIdent;
         self.moveCursor();
         if (self.ch != '\'') return commandError.WrongCommand;
         self.moveCursor();
         var list = std.ArrayList(u8).init(std.heap.page_allocator);
         defer list.deinit();
         while (true) {
-            if (self.ch != '\'') try list.append(self.ch) else break;
+            if (self.ch != '\'') {
+                try list.append(self.ch);
+                self.moveCursor();
+            } else break;
+            if (self.position == self.source.len - 1) break;
         }
         return list.toOwnedSlice();
     }
@@ -88,11 +96,15 @@ pub const Parser = struct {
         self.eatWhiteSpace();
         const cmd = try self.parseCommand();
         const indent = try self.parseIndentifier();
+        var value: ?[]u8 = undefined;
         std.debug.print("command: {any} indentifier: {s} \n", .{ cmd, indent });
-        // pass the value
-        switch (cmd) {
-            commandType.set => engine.set(indent, "value"),
-            else => return,
+        if (cmd == commandType.set) {
+            value = try self.parseValue();
+            try engine.set(indent, value.?);
+        }
+        if (cmd == commandType.get) {
+            value = try engine.get(indent);
+            std.debug.print("{s} \n", .{value.?});
         }
     }
     pub fn eatWhiteSpace(self: *Parser) void {

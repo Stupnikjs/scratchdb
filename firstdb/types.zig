@@ -11,4 +11,6 @@ pub const commandError = error{
     noSpaceBetweenCommandIdent,
     keyTooLong,
     keyAlreadyExist,
+    WrongCommand,
+    keyNotFound,
 };
