@@ -1,7 +1,6 @@
 const std = @import("std");
 const expect = std.testing.expect;
 const StorageEngine = @import("storage.zig").StorageEngine;
-const Parser = @import("parser.zig").Parser;
 const commandError = @import("types.zig").commandError;
 const util = @import("util.zig");
 
@@ -12,21 +11,16 @@ test "simple set" {
     try std.fs.cwd().deleteTree(engine.storeDirName);
 }
 
-test "print keys" {
-    var engine = StorageEngine.init("headerprintkeys", "testprintkeys", "printkeysstore");
-    try engine.setup();
-    try engine.set("super", "mi");
-    try engine.set("sj", "ez");
-    for (engine.map.keys()) |key| {
-        const coord = engine.map.get(key).?;
-        std.debug.print(" key {s} : [{d}, {d}] \n", .{ key, coord[0], coord[1] });
-    }
-    try std.fs.cwd().deleteTree(engine.storeDirName);
-}
 test "get simple key" {
     var engine = StorageEngine.init("headerget", "testget", "getstore");
     try engine.setup();
-    try engine.set("jean", "ooo");
+    const bigstring =
+        \\ iojfosjpofjpoJPFJOPJpojpofjpojpoJ
+        \\SSPDKPGOJPOJPOJOPJSPOJOPJPOJOPJOJDJDJ    OEPOZPJEOPE JOPJ
+        \\OJZEPOEZJEZOPJZEPOEJ EPJEP huhliuhlihuhiuhihuh              lalalala
+    ;
+
+    try engine.set("jean", bigstring);
     try engine.set("n", "ooo");
     try engine.set("jn", "ooEEEEE111");
     try engine.set("je", "oooO");
@@ -34,9 +28,33 @@ test "get simple key" {
     const res = try engine.get("jn");
     const res1 = try engine.get("jean");
     try expect(std.mem.eql(u8, res, "ooEEEEE111"));
-    try expect(std.mem.eql(u8, res1, "ooo"));
+    try expect(std.mem.eql(u8, res1, bigstring));
     try expect(!std.mem.eql(u8, res1, "ooEEEEE"));
+    try std.fs.cwd().deleteTree(engine.storeDirName);
+}
 
+test "set and multiple get" {
+    var engine = StorageEngine.init("headerget", "testget", "getstore");
+
+    try engine.setup();
+    const key = "wil";
+    const value = "this is the value  long key   eoIEZFJOZEJFEOZJFOZEOJEF op poepofep   zoezofjez ofzejp ojpezjoepjfopejfpoe jfopzej pofje opfjepofje pofje zop";
+
+    try engine.set("sec", "other val");
+    try engine.set(key, value);
+    try engine.set("third", "other other value ");
+    const res = try engine.get(key);
+    try expect(std.mem.eql(u8, res, value));
+    try std.fs.cwd().deleteTree(engine.storeDirName);
+}
+
+test "del simple" {
+    var engine = StorageEngine.init("headerget", "testget", "getstore");
+    try engine.setup();
+    try engine.set("sec", "other val");
+    try engine.del("sec");
+    const res = engine.get("sec");
+    try expect(res == commandError.keyNotFound);
     try std.fs.cwd().deleteTree(engine.storeDirName);
 }
 

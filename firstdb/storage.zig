@@ -88,9 +88,37 @@ pub const StorageEngine = struct {
         if (coord == null) return commandError.keyNotFound;
         var dir = try self.openStoreDir();
         var file = try dir.openFile(self.dbFileName, .{ .mode = .read_only });
-        var buffer: [1024]u8 = undefined;
+
+        var buffer: [8912]u8 = undefined;
         _ = try file.reader().readAll(&buffer); // not efficient at all
         return buffer[coord.?[0] .. coord.?[0] + coord.?[1]];
+    }
+
+    pub fn del(self: *StorageEngine, key: []const u8) !void {
+        const paddedKey = try util.addPaddingKey(key);
+        var dir = try self.openStoreDir();
+        var list = std.ArrayList([24]u8).init(std.heap.page_allocator);
+        defer list.deinit();
+        var file = try dir.openFile(self.headerFileName, .{ .mode = .read_write });
+        try self.parseHeaderFile();
+        defer file.close();
+        // iterate over headerfile and rewrite it without key
+        var buffer: [24]u8 = undefined; // OUR BATCH SIZE ;
+        while (true) {
+            const n = try file.read(&buffer);
+            if (!std.mem.eql(u8, buffer[0..8], paddedKey)) try list.append(buffer);
+            if (n == 0) break;
+        }
+        try dir.deleteFile(self.headerFileName);
+        const removed = self.map.swapRemove(key);
+        if (removed) {
+            var newHeaderFile = try dir.createFile(self.headerFileName, .{});
+            for (try list.toOwnedSlice()) |buf| {
+                _ = try newHeaderFile.write(&buf);
+            }
+        } else {
+            std.debug.print("fail to remove key from map \n", .{});
+        }
     }
 
     pub fn printKeys(self: *StorageEngine) !void {
