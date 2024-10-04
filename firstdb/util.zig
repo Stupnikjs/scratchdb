@@ -14,16 +14,12 @@ pub fn bytesTou64(src: [8]u8) u64 {
     return buffer;
 }
 
-pub fn bytesToU64LE(bytes: [8]u8) u64 {
+pub fn bytesToU32LE(bytes: [4]u8) u32 {
     // Little-endian: least significant byte first
-    return @as(u64, bytes[0]) |
-        (@as(u64, bytes[1]) << 8) |
-        (@as(u64, bytes[2]) << 16) |
-        (@as(u64, bytes[3]) << 24) |
-        (@as(u64, bytes[4]) << 32) |
-        (@as(u64, bytes[5]) << 40) |
-        (@as(u64, bytes[6]) << 48) |
-        (@as(u64, bytes[7]) << 56);
+    return @as(u32, bytes[0]) |
+        (@as(u32, bytes[1]) << 8) |
+        (@as(u32, bytes[2]) << 16) |
+        (@as(u32, bytes[3]) << 24);
 }
 
 pub fn addPaddingKey(key: []const u8) ![]u8 {
