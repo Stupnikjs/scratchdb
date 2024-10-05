@@ -153,3 +153,7 @@ pub fn execute_insert(stmt: *Statement, table: *Table) !executeResult {
     table.num_rows += 1;
     return executeResult.success;
 }
+
+pub fn execute_select() !executeResult {
+    return executeResult.success;
+}
