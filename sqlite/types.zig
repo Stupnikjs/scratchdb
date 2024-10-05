@@ -1,4 +1,13 @@
 const std = @import("std");
+const size_of_attribute = @import("main.zig");
+
+const ID_SIZE: u32 = size_of_attribute(Row, "id");
+const USERNAME_SIZE: u32 = size_of_attribute(Row, "username");
+const EMAIL_SIZE: u32 = size_of_attribute(Row, "email");
+const ID_OFFSET: u32 = 0;
+const USERNAME_OFFSET: u32 = ID_OFFSET + ID_SIZE;
+const EMAIL_OFFSET: u32 = USERNAME_OFFSET + USERNAME_SIZE;
+pub const ROW_SIZE: u32 = ID_SIZE + USERNAME_SIZE + EMAIL_SIZE;
 
 const PAGE_SIZE: u32 = 4096;
 const TABLE_MAX_PAGES: u32 = 100;
@@ -18,6 +27,7 @@ pub const Row = struct {
 const Table = struct {
     num_rows: u32,
     pages: [TABLE_MAX_PAGES]*anyopaque,
+    allocator: std.mem.Allocator,
 };
 
 pub const metaCMDresult = enum {
@@ -29,6 +39,11 @@ pub const prepareResult = enum {
     success,
     syntax_error,
     unreconized_statement,
+};
+
+pub const executeResult = enum {
+    success,
+    table_full,
 };
 
 pub const statementType = enum {
