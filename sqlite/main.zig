@@ -60,7 +60,15 @@ fn doMetaCmd(cmd: []const u8, table: *Table) !metaCMDresult {
 }
 
 pub fn parse_input(input_buffer: []const u8, statement: *Statement) !void {
-    statement.row_to_insert.id = row_id;
+    if (input_buffer[6] != ' ') return prepare_result.syntax_error; 
+    if (input_buffer[8] != ' ') return prepare_result.syntax_error; 
+
+    statement.row_to_insert.id = try std.fmt.parseInt(u32, input_buffer[7], u8);
+    var end: u8 = 9; 
+    var start = 9; 
+    for (input_buffer[9..]) |c| {
+        if (c == ' ') 
+    }
     statement.row_to_insert.username = try std.mem.copy(u8, statement.row_to_insert.username, username);
     statement.row_to_insert.email = try std.mem.copy(u8, statement.row_to_insert.email, email);
 }
