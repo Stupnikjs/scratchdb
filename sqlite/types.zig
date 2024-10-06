@@ -24,7 +24,7 @@ pub const Row = struct {
     }
 };
 
-const Table = struct {
+pub const Table = struct {
     num_rows: u32,
     pages: [TABLE_MAX_PAGES]*anyopaque,
     allocator: std.mem.Allocator,

@@ -42,7 +42,7 @@ pub fn main() !void {
                 std.debug.print("unreconized command \n", .{});
             }
         }
-        var stmt: statementType = undefined;
+        var stmt: Statement = undefined;
         const res = prepareStatement(cmd, &stmt);
         if (res == prepare_result.success) {
             executeStmt(stmt);
@@ -60,17 +60,6 @@ fn doMetaCmd(cmd: []const u8, table: *Table) !metaCMDresult {
 }
 
 pub fn parse_input(input_buffer: []const u8, statement: *Statement) !void {
-    var it = std.fmt.Parser.init(input_buffer);
-
-    try it.skipWhitespace(); // Skip any initial whitespace
-
-    const row_id = try it.parseInt(i32); // Parse the first integer for `id`
-    try it.skipWhitespace(); // Skip whitespace before username
-    const username = try it.parseString(); // Parse the username string
-    try it.skipWhitespace(); // Skip whitespace before email
-    const email = try it.parseString(); // Parse the email string
-
-    // Assign parsed values to the statement structure
     statement.row_to_insert.id = row_id;
     statement.row_to_insert.username = try std.mem.copy(u8, statement.row_to_insert.username, username);
     statement.row_to_insert.email = try std.mem.copy(u8, statement.row_to_insert.email, email);
@@ -89,13 +78,15 @@ fn prepareStatement(cmd: []const u8, stmt: *Statement) !prepare_result {
     return prepare_result.unreconized_statement;
 }
 
-pub fn executeStmt(stmt: *Statement) void {
+pub fn executeStmt(stmt: *Statement, table: *Table) void {
     switch (stmt.type) {
         .insert => {
             std.debug.print("this is insert stmt \n", .{});
+            execute_insert(stmt, table);
         },
         .select => {
             std.debug.print("this is select stmt \n", .{});
+            execute_select(stmt, table);
         },
     }
 }
@@ -133,10 +124,10 @@ pub fn row_slot(table: *Table, row_num: u32) !*anyopaque {
 }
 
 pub fn newTable() !*Table {
-    var table: *Table = std.heap.page_allocator.alloc(Table, 1);
+    var table: *Table = try std.heap.page_allocator.create(Table);
     table.num_rows = 0;
     for (0..TABLE_MAX_PAGES) |i| {
-        table.pages[i] = null;
+        table.pages[i] = undefined;
     }
     return table;
 }
@@ -154,6 +145,12 @@ pub fn execute_insert(stmt: *Statement, table: *Table) !executeResult {
     return executeResult.success;
 }
 
-pub fn execute_select() !executeResult {
+pub fn execute_select(stmt: *Statement, table: *Table) !executeResult {
+    _ = stmt;
+    for (0..table.num_rows) |i| {
+        var row: Row = undefined;
+        deserialize_row(row_slot(table, i), &row);
+        std.debug.print("{any}", .{row});
+    }
     return executeResult.success;
 }
