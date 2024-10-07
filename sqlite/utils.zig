@@ -1,4 +1,5 @@
 const std = @import("std");
+const builtin = @import("builtin");
 
 pub const Params = struct {
     username: ?[]const u8,
@@ -30,4 +31,10 @@ pub fn parseUsernameEmail(input: []const u8, params: *Params) !void {
             try email_list.append(c);
         }
     }
+}
+
+pub fn u32tobytes(src: u32) [4]u8 {
+    var buffer: [4]u8 = undefined;
+    _ = std.mem.writeInt(u32, &buffer, src, builtin.cpu.arch.endian());
+    return buffer;
 }

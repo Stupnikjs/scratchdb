@@ -73,6 +73,15 @@
 +  memcpy(&(destination->email), source + EMAIL_OFFSET, EMAIL_SIZE);
 +}
 +
+
+
+/*
+* row slot retourne un pointeur vers une ligne d'une page d'une table 
+* l'index de la page corresponds au numero de ligne sur le nombres de ligne par page 
+* on initialise un pointer qui pointe sur la nieme page de table.page[num]
+* si ce pointeur ne pointe pas vers une valeur non null on defini un allocateur
+* l'offset de la ligne plus l'offset de chaque ligne s'ajoute a la valeur du pointeur 
+*/
 +void* row_slot(Table* table, uint32_t row_num) {
 +  uint32_t page_num = row_num / ROWS_PER_PAGE;
 +  void *page = table->pages[page_num];

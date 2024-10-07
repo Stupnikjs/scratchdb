@@ -14,6 +14,16 @@ const Table = types.Table;
 const Params = @import("utils.zig").Params;
 const parseParams = @import("utils.zig").parseUsernameEmail;
 const memory = @import("memory.zig");
+const EMAIL_OFFSET = types.EMAIL_OFFSET;
+const EMAIL_SIZE = types.EMAIL_SIZE;
+const ID_OFFSET = types.ID_OFFSET;
+const ID_SIZE = types.ID_SIZE;
+const USERNAME_OFFSET = types.USERNAME_OFFSET;
+const ROWS_PER_PAGE = types.ROWS_PER_PAGE;
+const ROW_SIZE = types.ROW_SIZE;
+const TABLE_MAX_PAGES = types.TABLE_MAX_PAGES;
+const TABLE_MAX_ROWS = types.TABLE_MAX_ROWS;
+const USERNAME_SIZE = types.USERNAME_SIZE;
 
 const COLUMN_USERNAME_SIZE = 32;
 const COLUMN_EMAIL_SIZE = 255;
@@ -21,19 +31,6 @@ const COLUMN_EMAIL_SIZE = 255;
 pub fn size_of_attribute(T: type, fieldname: []const u8) u8 {
     return @sizeOf(@field(T, fieldname));
 }
-
-const ID_SIZE: u32 = 4;
-const USERNAME_SIZE: u32 = 4;
-const EMAIL_SIZE: u32 = 4;
-const ID_OFFSET: u32 = 0;
-const USERNAME_OFFSET: u32 = ID_OFFSET + ID_SIZE;
-const EMAIL_OFFSET: u32 = USERNAME_OFFSET + USERNAME_SIZE;
-pub const ROW_SIZE: u32 = ID_SIZE + USERNAME_SIZE + EMAIL_SIZE;
-
-const PAGE_SIZE: u32 = 4096;
-const TABLE_MAX_PAGES: u32 = 100;
-const ROWS_PER_PAGE: u32 = PAGE_SIZE / ROW_SIZE;
-const TABLE_MAX_ROWS: u32 = ROWS_PER_PAGE * TABLE_MAX_PAGES;
 
 pub fn main() !void {
     while (true) {
@@ -104,7 +101,8 @@ pub fn execute_insert(stmt: *Statement, table: *Table) !executeResult {
     if (table.num_rows >= TABLE_MAX_ROWS) {
         return executeResult.table_full;
     }
-    memory.serialize_row(&stmt.row_to_insert, try memory.row_slot(table, table.num_rows));
+    const slot = try memory.row_slot(table, table.num_rows);
+    memory.serialize_row(&stmt.row_to_insert, slot);
     table.num_rows += 1;
     return executeResult.success;
 }
@@ -113,7 +111,7 @@ pub fn execute_select(stmt: *Statement, table: *Table) !executeResult {
     _ = stmt;
     for (0..table.num_rows) |i| {
         var row: Row = undefined;
-        memory.deserialize_row(memory.row_slot(table, i), &row);
+        memory.deserialize_row(try memory.row_slot(table, i), &row);
         std.debug.print("{any}", .{row});
     }
     return executeResult.success;
