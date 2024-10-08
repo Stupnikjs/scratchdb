@@ -1,8 +1,9 @@
 // https://cstack.github.io/db_tutorial/parts/part3.html
 
 const std = @import("std");
-const prompt = @import("input.zig").prompt;
 const streql = std.mem.eql;
+const prompt = @import("input.zig").prompt;
+const parse_input = @import("input.zig").parse_input;
 const types = @import("types.zig");
 const metaCMDresult = types.metaCMDresult;
 const executeResult = types.executeResult;
@@ -57,18 +58,6 @@ fn doMetaCmd(cmd: []const u8, table: *Table) !metaCMDresult {
         try memory.freeTable(table);
     }
     return metaCMDresult.unreconized_command;
-}
-
-pub fn parse_input(input_buffer: []const u8, statement: *Statement) !void {
-    if (input_buffer[6] != ' ') return;
-    if (input_buffer[8] != ' ') return;
-
-    var params = Params.init();
-    statement.row_to_insert.id = try std.fmt.parseInt(u32, input_buffer[7..8], '2');
-
-    try parseParams(input_buffer, &params);
-    statement.row_to_insert.username = params.username.?;
-    statement.row_to_insert.email = params.email.?;
 }
 
 fn prepareStatement(cmd: []const u8, stmt: *Statement) !prepare_result {

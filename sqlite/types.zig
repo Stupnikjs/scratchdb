@@ -23,6 +23,17 @@ pub const Row = struct {
     }
 };
 
+pub const Params = struct {
+    username: ?[]const u8,
+    email: ?[]const u8,
+    pub fn init() Params {
+        return .{
+            .username = null,
+            .email = null,
+        };
+    }
+};
+
 pub const Table = struct {
     num_rows: u32,
     pages: [TABLE_MAX_PAGES]?*[]u8,
