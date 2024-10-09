@@ -33,19 +33,20 @@ pub fn deserialize_row(source: []u8, destination: *Row) void {
 
 pub fn row_slot(table: *Table, row_num: usize) ![]u8 {
     const page_num = row_num / ROWS_PER_PAGE;
-    const page = table.pages[page_num];
-    var buf: []u8 = undefined;
+    var page: ?*[]u8 = undefined;
+    if (page_num != 0 and table.pages.len > 0) page = table.pages[page_num];
+
     if (page == null) {
         var allocator = table.allocator;
-        page.?.* = try allocator.alloc(u8, types.PAGE_SIZE);
-        table.pages[page_num] = page;
+        table.pages[page_num].?.* = try allocator.alloc(u8, types.PAGE_SIZE);
     }
 
     const row_offset = row_num % ROWS_PER_PAGE;
     const byte_offset = row_offset * ROW_SIZE;
 
     // to access the next aviable memory space
-    buf = table.pages[page_num].?.*;
+    const buf = table.pages[page_num];
+    if (buf == null) return;
     return buf[byte_offset .. byte_offset + ROW_SIZE];
 }
 
