@@ -17,8 +17,13 @@ pub fn parse_input(input_buffer: []const u8, statement: *Statement) !void {
     if (input_buffer[8] != ' ') return;
 
     var params: Params = Params.init();
-    const bit = input_buffer[7];
-    const bytes: [4]u8 = [4]u8{ 0, 0, 0, bit };
+    const byte = input_buffer[7];
+    const bytes: [4]u8 = [4]u8{
+        byte,
+        0,
+        0,
+        0,
+    };
     statement.row_to_insert.id = types.bytesToU32LE(bytes);
     std.debug.print("{d}", .{statement.row_to_insert.id});
     try parseUsernameEmail(input_buffer, &params);
@@ -30,22 +35,18 @@ pub fn parse_input(input_buffer: []const u8, statement: *Statement) !void {
 }
 
 pub fn parseUsernameEmail(input: []const u8, params: *Params) !void {
-    var username_list = std.ArrayList(u8).init(std.heap.page_allocator);
-    defer username_list.deinit();
-    var email_list = std.ArrayList(u8).init(std.heap.page_allocator);
-    defer email_list.deinit();
-    var index: usize = 0;
-    var first_space_index: usize = undefined;
+    var index: usize = 9;
+    var first_space_index: usize = 0;
+    std.debug.print("input {s} \n", .{input});
+    if (input.len < 9) return;
     const end = input.len;
     for (input[9..]) |i| {
         index += 1;
-        if (i == ' ' and first_space_index == undefined) {
-            first_space_index = index;
+        if (i == ' ' and first_space_index == 0) {
+            first_space_index = index - 1;
         }
-
-        std.debug.print("{d} :  {c} \n", .{ first_space_index, i });
     }
     params.username = input[9..first_space_index];
-    params.email = input[first_space_index..end];
+    params.email = input[first_space_index + 1 .. end];
     index = 0;
 }

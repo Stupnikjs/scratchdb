@@ -101,7 +101,6 @@ pub fn execute_select(stmt: *Statement, table: *Table) !executeResult {
     for (0..table.num_rows) |i| {
         var row: Row = undefined;
         memory.deserialize_row(try memory.row_slot(table, i), &row);
-        std.debug.print("{any}", .{row});
     }
     return executeResult.success;
 }

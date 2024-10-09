@@ -24,6 +24,8 @@ test "parseuseremail" {
     var params = types.Params.init();
     const in = "insert 1 michel michel@gmail.com";
     try input.parseUsernameEmail(in, &params);
+    std.debug.print("username: {s}|\n", .{params.username.?});
+    std.debug.print("email: {s}|\n", .{params.email.?});
     try expect(std.mem.eql(u8, params.username.?, "michel"));
     try expect(std.mem.eql(u8, params.email.?, "michel@gmail.com"));
 }
