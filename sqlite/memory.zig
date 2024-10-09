@@ -15,14 +15,14 @@ const TABLE_MAX_PAGES = types.TABLE_MAX_PAGES;
 const USERNAME_SIZE = types.USERNAME_SIZE;
 
 pub fn serialize_row(source: *Row, destination: []u8) void {
-
-    // Serialize the `id` (u32) in little-endian order
+    // Serialize the `id` (u32) in little-endian orders
     const bytes: [4]u8 = utils.u32tobytes(source.id);
+    const username_int_ptr = utils.usizetobytes(@intFromPtr(&source.username));
+    // const email_int_ptr = utils.usizetobytes(@intFromPtr(&source.email));
     @memcpy(destination[ID_OFFSET .. ID_SIZE + ID_OFFSET], &bytes);
-
     // Copy `username` and `email` into the destination buffer
-    @memcpy(destination[USERNAME_OFFSET..][0..USERNAME_SIZE], source.username);
-    @memcpy(destination[EMAIL_OFFSET..][0..EMAIL_SIZE], source.email);
+    @memcpy(destination[USERNAME_OFFSET .. @sizeOf(usize) + USERNAME_OFFSET], username_int_ptr);
+    // @memcpy(destination[EMAIL_OFFSET .. EMAIL_OFFSET + @sizeOf(usize)], email_int_ptr);
 }
 
 pub fn deserialize_row(source: []u8, destination: *Row) void {
@@ -33,30 +33,19 @@ pub fn deserialize_row(source: []u8, destination: *Row) void {
 
 pub fn row_slot(table: *Table, row_num: usize) ![]u8 {
     const page_num = row_num / ROWS_PER_PAGE;
-    var page: ?*[]u8 = undefined;
-    if (page_num != 0 and table.pages.len > 0) page = table.pages[page_num];
 
-    if (page == null) {
+    if (table.pages[page_num] == null) {
         var allocator = table.allocator;
-        table.pages[page_num].?.* = try allocator.alloc(u8, types.PAGE_SIZE);
+        var buffer_alloc = try allocator.alloc(u8, types.PAGE_SIZE);
+        table.pages[page_num] = &buffer_alloc;
     }
 
     const row_offset = row_num % ROWS_PER_PAGE;
     const byte_offset = row_offset * ROW_SIZE;
 
     // to access the next aviable memory space
-    const buf = table.pages[page_num];
-    if (buf == null) return;
+    const buf = table.pages[page_num].?.*;
     return buf[byte_offset .. byte_offset + ROW_SIZE];
-}
-
-pub fn newTable() !*Table {
-    var table: *Table = try std.heap.page_allocator.create(Table);
-    table.num_rows = 0;
-    for (0..TABLE_MAX_PAGES) |i| {
-        table.pages[i] = null;
-    }
-    return table;
 }
 
 pub fn freeTable(table: *Table) !void {

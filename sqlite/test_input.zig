@@ -1,6 +1,7 @@
 const input = @import("input.zig");
 const std = @import("std");
 const types = @import("types.zig");
+const memory = @import("memory.zig");
 const st = @import("statement.zig");
 const expect = std.testing.expect;
 const prepare_result = types.prepareResult;
@@ -34,12 +35,10 @@ test "parseuseremail" {
 }
 
 test "prepare statement" {
+    std.debug.print("usize :  {d} \n", .{@sizeOf(usize)});
     var stmt: Statement = undefined;
-    var table = Table{
-        .num_rows = 0,
-        .pages = undefined,
-        .allocator = std.heap.page_allocator,
-    };
+    var table = Table.init();
+
     const in = "insert 1 michel michel@gmail.com";
     const res = try st.prepareStatement(in, &stmt);
     if (res == prepare_result.success) {

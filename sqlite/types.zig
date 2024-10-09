@@ -2,8 +2,8 @@ const std = @import("std");
 const size_of_attribute = @import("main.zig");
 
 pub const ID_SIZE: u32 = 4;
-pub const USERNAME_SIZE: u32 = 4;
-pub const EMAIL_SIZE: u32 = 4;
+pub const USERNAME_SIZE: u32 = @sizeOf(usize);
+pub const EMAIL_SIZE: u32 = @sizeOf(usize);
 pub const ID_OFFSET: u32 = 0;
 pub const USERNAME_OFFSET: u32 = ID_OFFSET + ID_SIZE;
 pub const EMAIL_OFFSET: u32 = USERNAME_OFFSET + USERNAME_SIZE;
@@ -36,8 +36,20 @@ pub const Params = struct {
 
 pub const Table = struct {
     num_rows: u32,
-    pages: [TABLE_MAX_PAGES]?*[]u8,
+    pages: []?*[]u8,
     allocator: std.mem.Allocator,
+
+    pub fn init() Table {
+        var pages_init: [TABLE_MAX_PAGES]?*[]u8 = undefined;
+        for (0..TABLE_MAX_PAGES) |i| {
+            pages_init[i] = null;
+        }
+        return .{
+            .num_rows = 0,
+            .pages = &pages_init,
+            .allocator = std.heap.page_allocator,
+        };
+    }
 };
 
 pub const metaCMDresult = enum {
