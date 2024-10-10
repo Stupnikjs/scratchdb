@@ -1,5 +1,6 @@
 const input = @import("input.zig");
 const std = @import("std");
+const builtin = @import("builtin");
 const types = @import("types.zig");
 const utils = @import("utils.zig");
 const memory = @import("memory.zig");
@@ -36,21 +37,22 @@ test "parseuseremail" {
 }
 
 test "prepare statement" {
-    // std.debug.print("usize :  {d} \n", .{@sizeOf(usize)});
-    // var stmt: Statement = undefined;
-    // var table = Table.init();
+    std.debug.print("usize :  {d} \n", .{@sizeOf(usize)});
+    var stmt: Statement = undefined;
+    var table = Table.init();
 
-    //const in = "insert 1 michel michel@gmail.com";
-    // const res = try st.prepareStatement(in, &stmt);
-    //if (res == prepare_result.success) {
-    //     try st.executeStmt(&stmt, &table);
-    //}
+    const in = "insert 1 michel michel@gmail.com";
+    const res = try st.prepareStatement(in, &stmt);
+    if (res == prepare_result.success) {
+        try st.executeStmt(&stmt, &table);
+    }
 }
 
 test "utils tobyte" {
     const int: u32 = 65;
-    const bytes = utils.tobytes(u32, int);
-    const newint = try utils.bytesToIntLE(u32, bytes);
-
+    var buff: [4]u8 = undefined;
+    _ = std.mem.writeInt(u32, &buff, int, builtin.cpu.arch.endian());
+    const newint = try utils.bytesToIntLE(u32, &buff);
+    std.debug.print("newint {d} {any} \n", .{ newint, buff });
     try expect(int == newint);
 }
