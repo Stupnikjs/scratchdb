@@ -16,10 +16,10 @@ const USERNAME_SIZE = types.USERNAME_SIZE;
 
 pub fn serialize_row(source: *Row, destination: []u8) void {
     // Serialize the `id` (u32) in little-endian orders
-    const bytes: [4]u8 = utils.u32tobytes(source.id);
-    const username_int_ptr = utils.usizetobytes(@intFromPtr(&source.username));
+    const bytes: []u8 = utils.tobytes(u32, source.id);
+    const username_int_ptr = utils.tobytes(usize, @intFromPtr(&source.username));
     // const email_int_ptr = utils.usizetobytes(@intFromPtr(&source.email));
-    @memcpy(destination[ID_OFFSET .. ID_SIZE + ID_OFFSET], &bytes);
+    @memcpy(destination[ID_OFFSET .. ID_SIZE + ID_OFFSET], bytes);
     // Copy `username` and `email` into the destination buffer
     @memcpy(destination[USERNAME_OFFSET .. @sizeOf(usize) + USERNAME_OFFSET], username_int_ptr);
     // @memcpy(destination[EMAIL_OFFSET .. EMAIL_OFFSET + @sizeOf(usize)], email_int_ptr);

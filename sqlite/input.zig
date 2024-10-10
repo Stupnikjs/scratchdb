@@ -24,7 +24,7 @@ pub fn parse_input(input_buffer: []const u8, statement: *Statement) !void {
         0,
         0,
     };
-    statement.row_to_insert.id = types.bytesToU32LE(bytes);
+    statement.row_to_insert.id = utils.bytesToIntLE(u32, &bytes);
     std.debug.print("{d}", .{statement.row_to_insert.id});
     try parseUsernameEmail(input_buffer, &params);
     if (params.email == null or params.username == null) {

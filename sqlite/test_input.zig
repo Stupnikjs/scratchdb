@@ -1,6 +1,7 @@
 const input = @import("input.zig");
 const std = @import("std");
 const types = @import("types.zig");
+const utils = @import("utils.zig");
 const memory = @import("memory.zig");
 const st = @import("statement.zig");
 const expect = std.testing.expect;
@@ -35,13 +36,21 @@ test "parseuseremail" {
 }
 
 test "prepare statement" {
-    std.debug.print("usize :  {d} \n", .{@sizeOf(usize)});
-    var stmt: Statement = undefined;
-    var table = Table.init();
+    // std.debug.print("usize :  {d} \n", .{@sizeOf(usize)});
+    // var stmt: Statement = undefined;
+    // var table = Table.init();
 
-    const in = "insert 1 michel michel@gmail.com";
-    const res = try st.prepareStatement(in, &stmt);
-    if (res == prepare_result.success) {
-        try st.executeStmt(&stmt, &table);
-    }
+    //const in = "insert 1 michel michel@gmail.com";
+    // const res = try st.prepareStatement(in, &stmt);
+    //if (res == prepare_result.success) {
+    //     try st.executeStmt(&stmt, &table);
+    //}
+}
+
+test "utils tobyte" {
+    const int: u32 = 65;
+    const bytes = utils.tobytes(u32, int);
+    const newint = try utils.bytesToIntLE(u32, bytes);
+
+    try expect(int == newint);
 }

@@ -77,15 +77,3 @@ pub const Statement = struct {
     type: statementType,
     row_to_insert: Row,
 };
-
-pub fn bytesToU32LE(bytes: [4]u8) u32 {
-    // Little-endian: least significant byte first
-    return @as(u32, bytes[0]) |
-        (@as(u32, bytes[1]) << 8) |
-        (@as(u32, bytes[2]) << 16) |
-        (@as(u32, bytes[3]) << 24);
-}
-
-pub const sqliteErr = error{
-    customErr,
-};
