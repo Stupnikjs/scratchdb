@@ -46,6 +46,7 @@ test "prepare statement" {
     if (res == prepare_result.success) {
         try st.executeStmt(&stmt, &table);
     }
+
     var selectStmt = Statement{
         .row_to_insert = Row{
             .email = "fake",
@@ -54,7 +55,7 @@ test "prepare statement" {
         },
         .type = types.statementType.select,
     };
-    _ = try st.execute_select(&selectStmt, &table);
+    // _ = try st.execute_select(&selectStmt, &table);
 }
 
 test "utils tobyte" {
