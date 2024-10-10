@@ -15,7 +15,7 @@ const ROW_SIZE = types.ROW_SIZE;
 const TABLE_MAX_PAGES = types.TABLE_MAX_PAGES;
 const USERNAME_SIZE = types.USERNAME_SIZE;
 
-pub fn serialize_row(source: *Row, destination: []u8) void {
+pub fn serialize_row(source: *Row, destination: *[]u8) void {
     // Serialize the `id` (u32) in little-endian orders
 
     var bytes: [4]u8 = undefined;
@@ -34,13 +34,15 @@ pub fn serialize_row(source: *Row, destination: []u8) void {
     @memcpy(destination[EMAIL_OFFSET .. EMAIL_OFFSET + @sizeOf(usize)], &email_int_ptr);
 }
 
-pub fn deserialize_row(source: []u8, destination: *Row) void {
+pub fn deserialize_row(source: *[]u8, destination: *Row) void {
     destination.id = try utils.bytesToIntLE(u32, source[ID_OFFSET .. ID_OFFSET + ID_SIZE]);
-    destination.username = source[USERNAME_OFFSET .. USERNAME_OFFSET + USERNAME_SIZE];
-    destination.email = source[EMAIL_OFFSET .. EMAIL_OFFSET + EMAIL_SIZE];
+    const ptr_username: *[]const u8 = @ptrFromInt(try utils.bytesToIntLE(usize, source[USERNAME_OFFSET .. USERNAME_OFFSET + USERNAME_SIZE]));
+    destination.username = ptr_username.*;
+    const ptr_email: *[]const u8 = @ptrFromInt(try utils.bytesToIntLE(usize, source[EMAIL_OFFSET .. EMAIL_OFFSET + EMAIL_SIZE]));
+    destination.email = ptr_email.*;
 }
 
-pub fn row_slot(table: *Table, row_num: usize) ![]u8 {
+pub fn row_slot(table: *Table, row_num: usize) *[]u8 {
     const page_num = row_num / ROWS_PER_PAGE;
     std.debug.print("page num :{d}\n", .{page_num});
     if (table.pages[page_num] == null) {
@@ -55,10 +57,12 @@ pub fn row_slot(table: *Table, row_num: usize) ![]u8 {
     std.debug.print("row offset :{d} \n byte_offset:{d} \n", .{ row_offset, byte_offset });
 
     // to access the next aviable memory space
-    const buf = table.pages[page_num].?.*;
+    const buf: []u8 = table.pages[page_num].?.*;
+    const slice = buf[byte_offset .. byte_offset + ROW_SIZE];
 
     std.debug.print("buf len :{d} \n", .{buf.len});
-    return buf[byte_offset .. byte_offset + ROW_SIZE];
+    std.debug.print("buf len :{d} \n", .{buf});
+    return &slice;
 }
 
 pub fn freeTable(table: *Table) !void {

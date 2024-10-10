@@ -47,15 +47,7 @@ test "prepare statement" {
         try st.executeStmt(&stmt, &table);
     }
 
-    var selectStmt = Statement{
-        .row_to_insert = Row{
-            .email = "fake",
-            .id = 1,
-            .username = "fake",
-        },
-        .type = types.statementType.select,
-    };
-    // _ = try st.execute_select(&selectStmt, &table);
+    std.debug.print("{any}", .{table.pages[1]});
 }
 
 test "utils tobyte" {
