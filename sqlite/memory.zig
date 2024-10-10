@@ -42,7 +42,7 @@ pub fn deserialize_row(source: []u8, destination: *Row) void {
 
 pub fn row_slot(table: *Table, row_num: usize) ![]u8 {
     const page_num = row_num / ROWS_PER_PAGE;
-
+    std.debug.print("page num :{d}\n", .{page_num});
     if (table.pages[page_num] == null) {
         var allocator = table.allocator;
         var buffer_alloc = try allocator.alloc(u8, types.PAGE_SIZE);
@@ -52,8 +52,12 @@ pub fn row_slot(table: *Table, row_num: usize) ![]u8 {
     const row_offset = row_num % ROWS_PER_PAGE;
     const byte_offset = row_offset * ROW_SIZE;
 
+    std.debug.print("row offset :{d} \n byte_offset:{d} \n", .{ row_offset, byte_offset });
+
     // to access the next aviable memory space
     const buf = table.pages[page_num].?.*;
+
+    std.debug.print("buf len :{d} \n", .{buf.len});
     return buf[byte_offset .. byte_offset + ROW_SIZE];
 }
 
