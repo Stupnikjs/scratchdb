@@ -18,11 +18,13 @@ const USERNAME_SIZE = types.USERNAME_SIZE;
 pub const Table = struct {
     num_rows: u32,
     pages: []*[]u8,
-    pub fn init() !Table {
-        const pages = try std.heap.page_allocator.alloc(*[]u8, 3);
+    allocator: std.mem.Allocator,
+    pub fn init(allocator: std.mem.Allocator) !Table {
+        const pages = try allocator.alloc(*[]u8, 6);
         return .{
             .num_rows = 0,
             .pages = pages,
+            .allocator = allocator,
         };
     }
 };
