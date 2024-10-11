@@ -1,5 +1,6 @@
 const std = @import("std");
 const types = @import("types.zig");
+const memory = @import("memory.zig");
 const Statement = types.Statement;
 const Params = types.Params;
 const utils = @import("utils.zig");

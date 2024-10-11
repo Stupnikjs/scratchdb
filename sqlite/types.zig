@@ -34,24 +34,6 @@ pub const Params = struct {
     }
 };
 
-pub const Table = struct {
-    num_rows: u32,
-    pages: []?*[]u8,
-    allocator: std.mem.Allocator,
-
-    pub fn init() Table {
-        var pages_init: [TABLE_MAX_PAGES]?*[]u8 = undefined;
-        for (0..TABLE_MAX_PAGES) |i| {
-            pages_init[i] = null;
-        }
-        return .{
-            .num_rows = 0,
-            .pages = &pages_init,
-            .allocator = std.heap.page_allocator,
-        };
-    }
-};
-
 pub const metaCMDresult = enum {
     sucess,
     unreconized_command,

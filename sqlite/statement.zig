@@ -8,7 +8,7 @@ const executeResult = types.executeResult;
 const statementType = types.statementType;
 const Statement = types.Statement;
 const prepare_result = types.prepareResult;
-const Table = types.Table;
+const Table = memory.Table;
 const Row = types.Row;
 const TABLE_MAX_ROWS = types.TABLE_MAX_ROWS;
 

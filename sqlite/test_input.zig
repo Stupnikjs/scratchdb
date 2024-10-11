@@ -9,7 +9,7 @@ const expect = std.testing.expect;
 const prepare_result = types.prepareResult;
 const Statement = types.Statement;
 const Row = types.Row;
-const Table = types.Table;
+const Table = memory.Table;
 
 test "prompt" {
     // TYPE michel
@@ -39,8 +39,10 @@ test "parseuseremail" {
 test "prepare statement" {
     std.debug.print("usize :  {d} \n", .{@sizeOf(usize)});
     var stmt: Statement = undefined;
-    var table = Table.init();
+    var al = std.heap.page_allocator;
 
+    var table = Table.init(al);
+    defer al.free(table);
     const in = "insert 1 michel michel@gmail.com";
     const res = try st.prepareStatement(in, &stmt);
     if (res == prepare_result.success) {
