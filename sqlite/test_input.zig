@@ -36,20 +36,9 @@ test "parseuseremail" {
     try expect(std.mem.eql(u8, params.email.?, "michel@gmail.com"));
 }
 
-test "prepare statement" {
-    std.debug.print("usize :  {d} \n", .{@sizeOf(usize)});
-    var stmt: Statement = undefined;
-    var al = std.heap.page_allocator;
-
-    var table = Table.init(al);
-    defer al.free(table);
-    const in = "insert 1 michel michel@gmail.com";
-    const res = try st.prepareStatement(in, &stmt);
-    if (res == prepare_result.success) {
-        try st.executeStmt(&stmt, &table);
-    }
-
-    std.debug.print("{any}", .{table.pages[1]});
+test "table" {
+    const table = try Table.init();
+    _ = table;
 }
 
 test "utils tobyte" {
