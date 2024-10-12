@@ -17,19 +17,25 @@ const USERNAME_SIZE = types.USERNAME_SIZE;
 
 pub const Table = struct {
     num_rows: u32,
-    pages: []*[]u8,
+    pages: []?*[]u8,
     allocator: std.mem.Allocator,
     pub fn init(allocator: std.mem.Allocator) !Table {
-        const pages = try allocator.alloc(*[]u8, 6);
+        var pages = try allocator.alloc(?*[]u8, TABLE_MAX_PAGES);
+        for (0..TABLE_MAX_PAGES) |i| {
+            pages[i] = null;
+        }
         return .{
             .num_rows = 0,
             .pages = pages,
             .allocator = allocator,
         };
     }
+    pub fn deinit(self: *Table) void {
+        self.allocator.free(self.pages);
+    }
 };
 
-pub fn serialize_row(source: *Row, destination: []u8) void {
+pub fn serialize_row(source: *Row, destination: [*]u8) void {
     // Serialize the `id` (u32) in little-endian orders
 
     var bytes: [4]u8 = undefined;
@@ -41,14 +47,18 @@ pub fn serialize_row(source: *Row, destination: []u8) void {
     var email_int_ptr: [8]u8 = undefined;
     _ = std.mem.writeInt(usize, &email_int_ptr, @intFromPtr(&source.email), builtin.cpu.arch.endian());
 
-    @memcpy(destination[ID_OFFSET .. ID_SIZE + ID_OFFSET], &bytes);
+    for (0..ID_SIZE) |i| {
+        destination[i] = bytes[i];
+    }
+    // destination.*[ID_OFFSET .. ID_SIZE + ID_OFFSET]
+    // @memcpy(dest_id_slot, &bytes);
     // Copy `username` and `email` into the destination buffer
-    @memcpy(destination[USERNAME_OFFSET .. @sizeOf(usize) + USERNAME_OFFSET], &email_int_ptr);
+    // @memcpy(destination.*[USERNAME_OFFSET .. @sizeOf(usize) + USERNAME_OFFSET], &email_int_ptr);
 
-    @memcpy(destination[EMAIL_OFFSET .. EMAIL_OFFSET + @sizeOf(usize)], &email_int_ptr);
+    // @memcpy(destination.*[EMAIL_OFFSET .. EMAIL_OFFSET + @sizeOf(usize)], &email_int_ptr);
 }
 
-pub fn deserialize_row(source: []u8, destination: *Row) void {
+pub fn deserialize_row(source: [*]u8, destination: *Row) void {
     destination.id = try utils.bytesToIntLE(u32, source[ID_OFFSET .. ID_OFFSET + ID_SIZE]);
     const ptr_username: *[]const u8 = @ptrFromInt(try utils.bytesToIntLE(usize, source[USERNAME_OFFSET .. USERNAME_OFFSET + USERNAME_SIZE]));
     destination.username = ptr_username.*;
@@ -56,22 +66,13 @@ pub fn deserialize_row(source: []u8, destination: *Row) void {
     destination.email = ptr_email.*;
 }
 
-pub fn row_slot(table: *Table, row_num: usize) ![]u8 {
+pub fn row_slot(table: *Table, row_num: usize) ![*]u8 {
     const page_num = row_num / ROWS_PER_PAGE;
     const row_offset = row_num % ROWS_PER_PAGE;
     const byte_offset = row_offset * ROW_SIZE;
-
-    if (table.pages[page_num] == null) {
-        var allocator = std.heap.page_allocator;
-        var buffer_alloc: []u8 = undefined;
-        buffer_alloc = try allocator.alloc(u8, types.PAGE_SIZE);
-        table.pages[page_num] = buffer_alloc;
-    }
-
-    const buf: []u8 = table.pages[page_num].?[byte_offset .. byte_offset + ROW_SIZE];
-    return buf;
-}
-
-pub fn freeTable(table: *Table) !void {
-    try table.allocator.free();
+    const offset = byte_offset + row_offset;
+    const buf: []u8 = if (table.pages[page_num] != null) table.pages[page_num].?.* else try table.allocator.alloc(u8, PAGE_SIZE);
+    // buf[byte_offset .. byte_offset + ROW_SIZE]
+    const buf_ptr = buf.ptr + offset;
+    return buf_ptr;
 }

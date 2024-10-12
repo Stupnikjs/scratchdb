@@ -43,6 +43,7 @@ pub fn execute_insert(stmt: *Statement, table: *Table) !executeResult {
         return executeResult.table_full;
     }
     const slot = try memory.row_slot(table, table.num_rows);
+    std.debug.print("{any}", .{slot});
     memory.serialize_row(&stmt.row_to_insert, slot);
     table.num_rows += 1;
     return executeResult.success;

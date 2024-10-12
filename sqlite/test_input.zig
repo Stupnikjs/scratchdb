@@ -37,8 +37,20 @@ test "parseuseremail" {
 }
 
 test "table" {
-    const table = try Table.init();
-    _ = table;
+    const allocator = std.heap.page_allocator;
+    var table = try Table.init(allocator);
+    defer table.deinit();
+
+    var statement = types.Statement{
+        .row_to_insert = .{
+            .email = "michel@gmail.com",
+            .id = 1,
+            .username = "michel",
+        },
+        .type = .select,
+    };
+    _ = try st.execute_insert(&statement, &table);
+    std.debug.print("{any}", .{table.pages});
 }
 
 test "utils tobyte" {
