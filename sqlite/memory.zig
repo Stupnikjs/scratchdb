@@ -17,24 +17,39 @@ const USERNAME_SIZE = types.USERNAME_SIZE;
 
 pub const Table = struct {
     num_rows: u32,
-    pages: []?*[]u8,
+    pages: [10]?*[]u8,
     allocator: std.mem.Allocator,
+
     pub fn init(allocator: std.mem.Allocator) !Table {
-        var pages = try allocator.alloc(?*[]u8, TABLE_MAX_PAGES);
-        for (0..TABLE_MAX_PAGES) |i| {
-            pages[i] = null;
+        var page_init: [10]*[]u8 = undefined;
+        for (0..10) |i| {
+            var buf: []u8 = try allocator.alloc(u8, 10);
+            page_init[i] = &buf;
+
+            if (i == 3) {
+                var bu = try allocator.alloc(u8, 10);
+                bu[0] = 'e';
+                bu[1] = 66;
+                bu[4] = 5;
+                page_init[i] = &bu;
+            }
         }
         return .{
             .num_rows = 0,
-            .pages = pages,
+            .pages = page_init,
             .allocator = allocator,
         };
     }
-    pub fn deinit(self: *Table) void {
-        self.allocator.free(self.pages);
+    pub fn set(self: *Table, data: []const u8, i: usize) !void {
+        const buf = try self.allocator.alloc(u8, data.len);
+        std.mem.copyForwards(u8, buf, data);
+        // std.debug.print("{s}", .{buf});
+        self.pages[i].?.* = @as([]u8, buf);
+    }
+    pub fn get(self: *Table, i: usize) ?*[]u8 {
+        return self.pages[i];
     }
 };
-
 pub fn serialize_row(source: *Row, destination: [*]u8) void {
     // Serialize the `id` (u32) in little-endian orders
 

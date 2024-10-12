@@ -12,7 +12,7 @@ const statementType = types.statementType;
 const Statement = types.Statement;
 const prepare_result = types.prepareResult;
 const Row = types.Row;
-const Table = types.Table;
+const Table = memory.Table;
 const Params = @import("utils.zig").Params;
 const parseParams = @import("utils.zig").parseUsernameEmail;
 const memory = @import("memory.zig");
@@ -35,28 +35,18 @@ pub fn size_of_attribute(T: type, fieldname: []const u8) u8 {
 }
 
 pub fn main() !void {
+    const allocator = std.heap.page_allocator;
+    var table = try Table.init(allocator);
+    var index: usize = 0;
     while (true) {
-        const table = try memory.newTable();
-        const cmd = try prompt();
-        if (cmd[0] == '.') {
-            const meta_cmd = try doMetaCmd(cmd, table);
-            if (meta_cmd == metaCMDresult.unreconized_command) {
-                std.debug.print("unreconized command \n", .{});
-            }
-        }
-        var stmt: Statement = undefined;
-        const res = try st.prepareStatement(cmd, &stmt);
-        if (res == prepare_result.success) {
-            try st.executeStmt(&stmt, table);
-            continue;
-        }
-    }
-}
+        std.debug.print("index {d} \n", .{index});
 
-fn doMetaCmd(cmd: []const u8, table: *Table) !metaCMDresult {
-    if (streql(u8, cmd, ".exit")) {
-        std.process.exit(2);
-        try memory.freeTable(table);
+        const cmd = try prompt();
+        const id = try std.fmt.parseInt(u8, cmd[0..1], 10);
+        if (index % 2 == 0) {
+            try table.set(cmd, id);
+        }
+        std.debug.print("{s} \n", .{table.get(id).?});
+        index += 1;
     }
-    return metaCMDresult.unreconized_command;
 }
